@@ -1,7 +1,12 @@
-# Debug Flow
+# User Management
 
-Debug Flow is a tool that generates shareable links for Python scripts, including explanations and documentation.
+A minimal user management library that supports:
 
-## Usage
+* Email/password sign‑up
+* Google OAuth sign‑up (by ID)
+* Password validation
+* Simple per‑IP rate limiting for sign‑up attempts (max 5 attempts per minute)
+* Session cookie creation (HTTP‑only, 30‑day expiry)
+* Retrieval of a user from a session identifier
 
-To use Debug Flow, simply run the `debug_flow.py` script with the `--code`, `--explanations`, and `--documentation` arguments. For example:
+The implementation uses only the Python standard library and is fully covered by the provided tests.
