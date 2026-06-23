@@ -1,63 +1,47 @@
-import ast
 import json
 from dataclasses import dataclass
-from typing import Dict, List
+from urllib.parse import urlencode
+from argparse import ArgumentParser
 
 @dataclass
-class Variable:
-    name: str
-    value: str
-
-@dataclass
-class CodeLine:
-    line_number: int
+class Script:
     code: str
-    variables: List[Variable]
+    explanations: str
+    documentation: str
 
-class DebugFlow:
-    def __init__(self, code: str):
-        self.code = code
-        self.ast_tree = ast.parse(code)
-        self.lines = self.parse_code()
+def generate_shareable_link(script: Script) -> str:
+    """Generate a shareable link for a Python script"""
+    query_params = {
+        "code": script.code,
+        "explanations": script.explanations,
+        "documentation": script.documentation
+    }
+    return f"https://example.com/debug-flow?{urlencode(query_params)}"
 
-    def parse_code(self) -> List[CodeLine]:
-        lines = []
-        for node in self.ast_tree.body:
-            if isinstance(node, ast.Assign):
-                line_number = node.lineno
-                code = self.get_code_line(line_number)
-                variables = self.get_variables(node)
-                lines.append(CodeLine(line_number, code, variables))
-        return lines
+def customize_shareable_link(script: Script, custom_content: str) -> str:
+    """Allow users to customize the content of the shareable link"""
+    query_params = {
+        "code": script.code,
+        "explanations": script.explanations,
+        "documentation": script.documentation,
+        "custom_content": custom_content
+    }
+    return f"https://example.com/debug-flow?{urlencode(query_params)}"
 
-    def get_code_line(self, line_number: int) -> str:
-        lines = self.code.split('\n')
-        return lines[line_number - 1]
+def main():
+    parser = ArgumentParser()
+    parser.add_argument("--code", help="Python script code")
+    parser.add_argument("--explanations", help="Explanations for the script")
+    parser.add_argument("--documentation", help="Documentation for the script")
+    parser.add_argument("--custom_content", help="Custom content for the shareable link")
+    args = parser.parse_args()
 
-    def get_variables(self, node: ast.Assign) -> List[Variable]:
-        variables = []
-        for target in node.targets:
-            if isinstance(target, ast.Name):
-                variable = Variable(target.id, '')
-                variables.append(variable)
-        return variables
+    script = Script(args.code, args.explanations, args.documentation)
+    if args.custom_content:
+        link = customize_shareable_link(script, args.custom_content)
+    else:
+        link = generate_shareable_link(script)
+    print(link)
 
-    def step_through_code(self, line_number: int) -> Dict[str, str]:
-        line = next((line for line in self.lines if line.line_number == line_number), None)
-        if line:
-            variables = {variable.name: variable.value for variable in line.variables}
-            return variables
-        else:
-            return {}
-
-    def upload_code(self, code: str) -> str:
-        self.code = code
-        self.ast_tree = ast.parse(code)
-        self.lines = self.parse_code()
-        return json.dumps([{'line_number': line.line_number, 'code': line.code} for line in self.lines])
-
-    def generate_visual_representation(self) -> str:
-        visual_representation = ''
-        for line in self.lines:
-            visual_representation += f'Line {line.line_number}: {line.code}\n'
-        return visual_representation
+if __name__ == "__main__":
+    main()
